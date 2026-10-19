@@ -1,0 +1,24 @@
+HETATM    1 O1   BZA     1       2.754   0.841  -0.081  1.00  0.00           O  
+HETATM    2 C1   BZA     1       2.076  -0.314   0.044  1.00  0.00           C  
+HETATM    3 O2   BZA     1       2.658  -1.377   0.165  1.00  0.00           O  
+HETATM    4 C2   BZA     1       0.605  -0.126   0.017  1.00  0.00           C  
+HETATM    5 C3   BZA     1       0.020   1.138  -0.126  1.00  0.00           C  
+HETATM    6 C4   BZA     1      -1.371   1.266  -0.147  1.00  0.00           C  
+HETATM    7 C5   BZA     1      -2.179   0.135  -0.025  1.00  0.00           C  
+HETATM    8 C6   BZA     1      -1.600  -1.126   0.118  1.00  0.00           C  
+HETATM    9 C7   BZA     1      -0.211  -1.258   0.139  1.00  0.00           C  
+HETATM   10 H1   BZA     1       3.693   0.564  -0.046  1.00  0.00           H  
+HETATM   11 H2   BZA     1       0.636   2.028  -0.223  1.00  0.00           H  
+HETATM   12 H3   BZA     1      -1.824   2.248  -0.258  1.00  0.00           H  
+HETATM   13 H4   BZA     1      -3.261   0.237  -0.041  1.00  0.00           H  
+HETATM   14 H5   BZA     1      -2.231  -2.007   0.213  1.00  0.00           H  
+HETATM   15 H6   BZA     1       0.234  -2.245   0.251  1.00  0.00           H  
+CONECT    1    2   10
+CONECT    2    3    3    4
+CONECT    4    5    5    9
+CONECT    5    6   11
+CONECT    6    7    7   12
+CONECT    7    8   13
+CONECT    8    9    9   14
+CONECT    9   15
+END

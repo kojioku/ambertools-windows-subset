@@ -1,0 +1,97 @@
+name: build-windows
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 300
+    defaults:
+      run:
+        shell: msys2 {0}
+    env:
+      AT_URL: https://ambermd.org/downloads/ambertools26_rc7.tar.bz2
+      AT_SHA256: 5d46eef3c2bb7d5bf9e8c0c38add34406ea67e3f0e4097ac9d11d8a544538c9c
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: >-
+            make tar bzip2 patch flex bison diffutils
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-gcc-fortran
+            mingw-w64-ucrt-x86_64-cmake
+            mingw-w64-ucrt-x86_64-zlib
+            mingw-w64-ucrt-x86_64-openblas
+            mingw-w64-ucrt-x86_64-fftw
+            mingw-w64-ucrt-x86_64-netcdf
+            mingw-w64-ucrt-x86_64-boost
+            mingw-w64-ucrt-x86_64-python
+
+      - name: Fetch AmberTools source
+        run: |
+          curl -sSL -o at.tar.bz2 "$AT_URL"
+          echo "$AT_SHA256  at.tar.bz2" | sha256sum -c
+          tar -xjf at.tar.bz2
+          ls
+
+      - name: Configure
+        run: |
+          mkdir build && cd build
+          cmake ../ambertools26_src -G "MSYS Makefiles" \
+            -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+            -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/ambertools-win" \
+            -DCOMPILER=GNU -DMPI=FALSE -DCUDA=FALSE -DOPENMP=FALSE \
+            -DBUILD_PYTHON=FALSE -DBUILD_PERL=FALSE -DBUILD_GUI=FALSE \
+            -DCHECK_UPDATES=FALSE -DDOWNLOAD_MINICONDA=FALSE -DINSTALL_TESTS=FALSE \
+            "-DDISABLE_TOOLS=$(cat ../disable_tools.txt)" 2>&1 | tee configure.log
+          sed 's/\x1b\[[0-9;]*m//g' configure.log | grep -A1 "Building Tools:"
+
+      - name: Build
+        run: |
+          cd build
+          make -j4 install 2>&1 | tail -200
+
+      - name: Smoke test
+        run: |
+          export AMBERHOME="$GITHUB_WORKSPACE/ambertools-win"
+          export PATH="$AMBERHOME/bin:$PATH"
+          bash smoke/run.sh "$GITHUB_WORKSPACE/smoke-out"
+
+      - name: Upload smoke outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-out
+          path: smoke-out
+          if-no-files-found: ignore
+
+      - name: Upload build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: |
+            build/configure.log
+            build/CMakeFiles/CMakeError.log
+            build/CMakeFiles/CMakeOutput.log
+          if-no-files-found: ignore
+
+      - name: Package
+        run: |
+          cp ambertools26_src/AmberTools/LICENSE ambertools-win/LICENSE-AmberTools.txt
+          cp README.md ambertools-win/README-build.md
+          cd "$GITHUB_WORKSPACE" && zip -qr ambertools26-win64-subset.zip ambertools-win || \
+            powershell -NoProfile -Command "Compress-Archive -Path ambertools-win -DestinationPath ambertools26-win64-subset.zip"
+          ls -la ambertools26-win64-subset.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ambertools26-win64-subset
+          path: ambertools26-win64-subset.zip
