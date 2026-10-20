@@ -16,7 +16,7 @@ jobs:
       AT_URL: https://ambermd.org/downloads/ambertools26_rc7.tar.bz2
       AT_SHA256: 5d46eef3c2bb7d5bf9e8c0c38add34406ea67e3f0e4097ac9d11d8a544538c9c
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: msys2/setup-msys2@v2
         with:
@@ -38,7 +38,13 @@ jobs:
         run: |
           curl -sSL -o at.tar.bz2 "$AT_URL"
           echo "$AT_SHA256  at.tar.bz2" | sha256sum -c
-          tar -xjf at.tar.bz2
+          bunzip2 at.tar.bz2
+          # MSYS2 emulates a symlink by copying its target, which fails when the
+          # target comes later in the archive; a second pass finds it in place.
+          tar -xf at.tar || echo "first pass left some symlinks unresolved"
+          tar -xf at.tar --skip-old-files
+          test -f ambertools26_src/dat/leap/parm/frcmod.xFPchromophores
+          test -f ambertools26_src/AmberTools/src/leap/tleap.bat
           ls
 
       - name: Configure
@@ -66,7 +72,7 @@ jobs:
 
       - name: Upload smoke outputs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: smoke-out
           path: smoke-out
@@ -74,7 +80,7 @@ jobs:
 
       - name: Upload build logs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: build-logs
           path: |
@@ -91,7 +97,7 @@ jobs:
             powershell -NoProfile -Command "Compress-Archive -Path ambertools-win -DestinationPath ambertools26-win64-subset.zip"
           ls -la ambertools26-win64-subset.zip
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: ambertools26-win64-subset
           path: ambertools26-win64-subset.zip
