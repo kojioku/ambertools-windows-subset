@@ -31,6 +31,30 @@ AM1-BCC-charges benzoic acid with antechamber + sqm, fills its parameters with p
 and loads it back into tleap. The outputs are uploaded as the `smoke-out` artifact so they
 can be compared with the same script run on Linux.
 
+Checked on 2026-10-21 (run 39470825489) against the same AmberTools source built on
+Linux: `peptide.prmtop`, `peptide_solv.prmtop`, both `.inpcrd`, `lig.mol2` (AM1-BCC
+charges, total 0.0030), `lig.frcmod` and `lig.prmtop` are identical once line endings
+(Windows writes CRLF) and the `%VERSION` date line are set aside.
+
+## Running it
+
+Unzip anywhere. Call `bin\teLeap.exe` directly with the four `-I` paths that
+`bin\tleap.bat` adds (`tleap.bat` does not quote `%AMBERHOME%`, so it breaks on paths
+with spaces). antechamber, parmchk2 and the other antechamber tools live in
+`bin\wrapped_progs\`; the `.bat` files in `bin\` set `AMBERHOME` and put `bin\` on
+PATH before calling them, and a caller that runs the `.exe` directly has to do the same,
+because their DLLs are in `bin\`.
+
+## Source changes
+
+`patches/apply.sh` makes two changes before configuring:
+
+- kmmd: force-includes a `getline()` for MinGW, which lacks it
+- leap: opens the OFF library database in binary mode. `database.c` stores entry offsets
+  with `ftell` and seeks back to them, which does not round-trip on a Windows text-mode
+  stream over LF-only files; without this teLeap reads `amino12.lib` from the wrong place
+  and crashes
+
 ## License
 
 AmberTools is distributed by its authors, mostly under the GNU GPL v3 (see
