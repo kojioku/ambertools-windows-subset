@@ -3,7 +3,8 @@
 # bin/, so the archive runs on a Windows machine without MSYS2. Repeats until
 # no new DLL appears, since the copied DLLs have dependencies of their own.
 set -euo pipefail
-B="$1/bin"
+shopt -s nullglob
+B="$(cygpath -u "$1")/bin"
 for pass in 1 2 3 4 5; do
   new=0
   for f in "$B"/*.exe "$B"/*.dll "$B"/wrapped_progs/*.exe; do
@@ -14,3 +15,4 @@ for pass in 1 2 3 4 5; do
   done
   [[ $new = 0 ]] && break
 done
+ls "$B"/*.dll | wc -l | xargs echo "DLLs in bin:"
