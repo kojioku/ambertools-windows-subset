@@ -49,6 +49,9 @@ jobs:
           test -f ambertools26_src/AmberTools/src/leap/tleap.bat
           ls
 
+      - name: Apply MinGW source fixes
+        run: bash patches/apply.sh
+
       - name: Configure
         run: |
           mkdir build && cd build
