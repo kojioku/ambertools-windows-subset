@@ -32,6 +32,13 @@ grep -E "Total unperturbed charge|Exiting" peptide.leap.log || true
 test -s peptide.prmtop
 test -s peptide_solv.prmtop
 
+# On Windows antechamber and parmchk2 are .bat wrappers around
+# bin/wrapped_progs/*.exe, which bash cannot run; call the programs directly.
+if [[ -x "$AMBERHOME/bin/wrapped_progs/antechamber.exe" ]]; then
+  antechamber() { "$AMBERHOME/bin/wrapped_progs/antechamber.exe" "$@"; }
+  parmchk2() { "$AMBERHOME/bin/wrapped_progs/parmchk2.exe" "$@"; }
+fi
+
 cp "$HERE/benzoic_acid.sdf" .
 antechamber -i benzoic_acid.sdf -fi mdl -o lig.mol2 -fo mol2 -c bcc -at gaff2 -nc 0 -s 2 > antechamber.log 2>&1
 parmchk2 -i lig.mol2 -f mol2 -o lig.frcmod -s gaff2 > parmchk2.log 2>&1
