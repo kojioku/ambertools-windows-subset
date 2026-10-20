@@ -30,8 +30,6 @@ jobs:
             mingw-w64-ucrt-x86_64-zlib
             mingw-w64-ucrt-x86_64-openblas
             mingw-w64-ucrt-x86_64-fftw
-            mingw-w64-ucrt-x86_64-netcdf
-            mingw-w64-ucrt-x86_64-netcdf-fortran
             mingw-w64-ucrt-x86_64-arpack
             mingw-w64-ucrt-x86_64-nlopt
             mingw-w64-ucrt-x86_64-python
@@ -63,6 +61,7 @@ jobs:
             -DCHECK_UPDATES=FALSE -DDOWNLOAD_MINICONDA=FALSE -DINSTALL_TESTS=FALSE \
             "-DDISABLE_TOOLS=$(cat ../disable_tools.txt)" \
             "-DFORCE_DISABLE_LIBS=boost;tng_io" \
+            "-DFORCE_INTERNAL_LIBS=netcdf;netcdf-fortran" \
             -DCMAKE_Fortran_STANDARD_LIBRARIES=-lws2_32 \
             -DCMAKE_C_STANDARD_LIBRARIES=-lws2_32 \
             -DCMAKE_CXX_STANDARD_LIBRARIES=-lws2_32 2>&1 | tee configure.log

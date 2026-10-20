@@ -17,8 +17,12 @@ minimal set of tools and tests it.
 - Tools: everything in `disable_tools.txt` is switched off; what remains is antechamber,
   sqm, leap and the libraries they need (sander, pbsa, sff, rism, quick, cew, libdlfind,
   emil, sebomd, cifparse, lib, etc)
-- Compiler: MSYS2 UCRT64 gcc / gfortran; the MinGW runtime DLLs are bundled by the
-  upstream CMake scripts
+- NetCDF: the copy bundled with AmberTools (netcdf-c 4.6.1, netcdf-fortran 4.4.4), not
+  MSYS2's. MSYS2's netcdf pulls in HDF5, curl and the AWS SDK (about 40 DLLs), and
+  teLeap then failed to start with a missing entry point (0xC0000139)
+- Compiler: MSYS2 UCRT64 gcc / gfortran. `smoke/bundle_dlls.sh` copies every MinGW DLL
+  the programs load into `bin/`, and `smoke/probe.ps1` starts them with only `bin\` and
+  System32 on PATH, as on a machine without MSYS2
 
 ## Smoke test
 
