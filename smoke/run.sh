@@ -3,7 +3,7 @@
 # ff14SB + TIP3P, antechamber/sqm types and AM1-BCC-charges a small molecule,
 # parmchk2 fills its missing parameters. The outputs are kept so they can be
 # compared with the same steps on Linux.
-set -euo pipefail
+set -euxo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OUT="${1:-smoke-out}"
 mkdir -p "$OUT"

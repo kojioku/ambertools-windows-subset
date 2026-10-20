@@ -79,6 +79,21 @@ jobs:
           ls -la ambertools-win/bin
           for e in teLeap antechamber parmchk2 sqm; do echo "== $e"; ldd "ambertools-win/bin/$e.exe" | grep -v -i "/c/windows" || true; done
 
+      - name: Probe executables
+        continue-on-error: true
+        run: |
+          export AMBERHOME="$GITHUB_WORKSPACE/ambertools-win"
+          B="$AMBERHOME/bin"
+          set +e
+          echo quit > q.in
+          "$B/teLeap.exe" -f q.in; echo "teLeap rc=$?"
+          "$B/sqm.exe" -h; echo "sqm rc=$?"
+          ls "$B/wrapped_progs"
+          "$B/wrapped_progs/antechamber.exe" -h | head -3; echo "antechamber rc=$?"
+          cat "$B/antechamber.bat"
+          cmd //c "$(cygpath -w "$B/teLeap.exe")" -f q.in; echo "cmd teLeap rc=$?"
+          PATH="$B:/c/Windows/System32" "$B/teLeap.exe" -f q.in; echo "teLeap without ucrt64 rc=$?"
+
       - name: Smoke test
         continue-on-error: true
         run: |
