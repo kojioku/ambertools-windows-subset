@@ -11,7 +11,7 @@ for pass in 1 2 3 4 5; do
     while read -r dll; do
       name=$(basename "$dll")
       if [[ ! -e "$B/$name" ]]; then cp "$dll" "$B/"; echo "bundled $name"; new=1; fi
-    done < <(PATH="$B:/ucrt64/bin:/c/Windows/System32" ldd "$f" 2>/dev/null | awk '$3 ~ /^\/ucrt64\// {print $3}')
+    done < <(PATH="$B:/ucrt64/bin:/usr/bin:/c/Windows/System32" ldd "$f" | awk '$3 ~ /^\/ucrt64\// {print $3}')
   done
   [[ $new = 0 ]] && break
 done
