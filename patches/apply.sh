@@ -15,4 +15,15 @@ if(MINGW)
 endif()
 CMK
 fi
+
+# leap's OFF library reader (database.c) records entry offsets with ftell and
+# jumps back with fseek. On Windows a text-mode stream over LF-only files gives
+# offsets that do not round-trip, so amino12.lib is read from the wrong place
+# (box values of 1e-312) and teLeap crashes. Open the database in binary mode,
+# which is what POSIX does anyway.
+DB=ambertools26_src/AmberTools/src/leap/src/leap/database.c
+sed -i -E 's/(FOPEN(NO)?COMPLAIN\( *[a-zA-Z>.-]+, *)"(r|w)(\+?)"/\1"\3\4b"/' "$DB"
+n=$(grep -cE 'FOPEN(NO)?COMPLAIN\(.*"(r|w)\+?b"' "$DB")
+echo "database.c: $n fopen calls switched to binary mode"
+test "$n" -eq 9
 echo "patches applied"
