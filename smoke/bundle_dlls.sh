@@ -16,3 +16,26 @@ for pass in 1 2 3 4 5; do
   [[ $new = 0 ]] && break
 done
 ls "$B"/*.dll | wc -l | xargs echo "DLLs in bin:"
+
+# The licences of every MinGW DLL in bin/, from the MSYS2 package that owns
+# it, so the archive carries them next to AmberTools' own (licenses/).
+L="$(dirname "$B")/licenses/mingw"
+mkdir -p "$L"
+{
+  echo "MinGW-w64 / MSYS2 DLLs bundled in bin/, and the MSYS2 package each one"
+  echo "comes from. Package sources: https://github.com/msys2/MINGW-packages"
+  echo
+  printf '%-28s %-44s %s\n' "DLL" "package" "licence (pacman)"
+} > "$L/DLLS.txt"
+for dll in "$B"/*.dll; do
+  name=$(basename "$dll")
+  [[ -e "/ucrt64/bin/$name" ]] || continue
+  pkg=$(pacman -Qqo "/ucrt64/bin/$name")
+  lic=$(pacman -Qi "$pkg" | sed -n 's/^Licenses *: //p')
+  ver=$(pacman -Q "$pkg" | cut -d' ' -f2)
+  printf '%-28s %-44s %s\n' "$name" "$pkg $ver" "$lic" >> "$L/DLLS.txt"
+  if [[ -d "/ucrt64/share/licenses/${pkg#mingw-w64-ucrt-x86_64-}" ]]; then
+    cp -r "/ucrt64/share/licenses/${pkg#mingw-w64-ucrt-x86_64-}" "$L/"
+  fi
+done
+cat "$L/DLLS.txt"

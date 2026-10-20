@@ -58,6 +58,17 @@ because their DLLs are in `bin\`.
 ## License
 
 AmberTools is distributed by its authors, mostly under the GNU GPL v3 (see
-`LICENSE-AmberTools.txt` in the built archive, taken from the source). The force-field
-files in `dat/leap` are in the public domain. The corresponding source is the tarball
-named above. This repository is not affiliated with the Amber developers.
+`LICENSE-AmberTools.txt` in the built archive, taken from the source, and `licenses/`):
+libsander / libpbsa and the BLEND code are LGPL v3, arpack and ucpp are BSD-style, netcdf
+carries UCAR's notice, and the force-field files in `dat/leap` are in the public domain.
+pmemd, which is under the Amber proprietary licence, is **not** built.
+
+The archive also carries MinGW-w64 / MSYS2 runtime and library DLLs in `bin/`; which
+package each comes from, its version and licence are listed in
+`licenses/mingw/DLLS.txt`, with the package's licence files beside it.
+
+Corresponding source: the AmberTools tarball named above (URL and SHA-256 in
+`.github/workflows/build.yml`), plus the two changes in `patches/` of this repository,
+applied by `patches/apply.sh`; the MSYS2 packages' sources are at
+https://github.com/msys2/MINGW-packages. This repository is not affiliated with the
+Amber developers.
