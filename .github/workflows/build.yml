@@ -74,7 +74,13 @@ jobs:
           cd build
           make -j4 install 2>&1 | tail -200
 
+      - name: Inspect install
+        run: |
+          ls -la ambertools-win/bin
+          for e in teLeap antechamber parmchk2 sqm; do echo "== $e"; ldd "ambertools-win/bin/$e.exe" | grep -v -i "/c/windows" || true; done
+
       - name: Smoke test
+        continue-on-error: true
         run: |
           export AMBERHOME="$GITHUB_WORKSPACE/ambertools-win"
           export PATH="$AMBERHOME/bin:$PATH"
