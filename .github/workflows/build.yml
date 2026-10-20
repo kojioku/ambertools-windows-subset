@@ -62,7 +62,10 @@ jobs:
             -DBUILD_PYTHON=FALSE -DBUILD_PERL=FALSE -DBUILD_GUI=FALSE \
             -DCHECK_UPDATES=FALSE -DDOWNLOAD_MINICONDA=FALSE -DINSTALL_TESTS=FALSE \
             "-DDISABLE_TOOLS=$(cat ../disable_tools.txt)" \
-            "-DFORCE_DISABLE_LIBS=boost;tng_io" 2>&1 | tee configure.log
+            "-DFORCE_DISABLE_LIBS=boost;tng_io" \
+            -DCMAKE_Fortran_STANDARD_LIBRARIES=-lws2_32 \
+            -DCMAKE_C_STANDARD_LIBRARIES=-lws2_32 \
+            -DCMAKE_CXX_STANDARD_LIBRARIES=-lws2_32 2>&1 | tee configure.log
           sed 's/\x1b\[[0-9;]*m//g' configure.log | grep -A25 "3rd Party Libraries"
           sed 's/\x1b\[[0-9;]*m//g' configure.log | grep -A1 "Building Tools:"
 
