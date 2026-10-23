@@ -23,7 +23,7 @@ jobs:
           msystem: UCRT64
           update: true
           install: >-
-            make tar bzip2 patch flex bison diffutils
+            make tar bzip2 patch flex bison diffutils zip
             mingw-w64-ucrt-x86_64-gcc
             mingw-w64-ucrt-x86_64-gcc-fortran
             mingw-w64-ucrt-x86_64-cmake
@@ -116,8 +116,10 @@ jobs:
         run: |
           cp ambertools26_src/AmberTools/LICENSE ambertools-win/LICENSE-AmberTools.txt
           cp README.md ambertools-win/README-build.md
-          cd "$GITHUB_WORKSPACE" && zip -qr ambertools26-win64-subset.zip ambertools-win || \
-            powershell -NoProfile -Command "Compress-Archive -Path ambertools-win -DestinationPath ambertools26-win64-subset.zip"
+          # MSYS2's zip, not PowerShell's Compress-Archive: the latter stored the
+          # paths with backslashes, which only Windows tools read as folders.
+          cd "$GITHUB_WORKSPACE" && zip -qr ambertools26-win64-subset.zip ambertools-win
+          unzip -l ambertools26-win64-subset.zip | grep -q "ambertools-win/bin/teLeap.exe"
           ls -la ambertools26-win64-subset.zip
 
       - uses: actions/upload-artifact@v5
