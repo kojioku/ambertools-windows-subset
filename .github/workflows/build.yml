@@ -23,7 +23,7 @@ jobs:
           msystem: UCRT64
           update: true
           install: >-
-            make tar bzip2 patch flex bison diffutils zip
+            make tar bzip2 patch flex bison diffutils zip unzip
             mingw-w64-ucrt-x86_64-gcc
             mingw-w64-ucrt-x86_64-gcc-fortran
             mingw-w64-ucrt-x86_64-cmake
