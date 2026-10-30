@@ -76,7 +76,7 @@ jobs:
       - name: Inspect install
         run: |
           ls -la ambertools-win/bin
-          for e in teLeap antechamber parmchk2 sqm; do echo "== $e"; ldd "ambertools-win/bin/$e.exe" | grep -v -i "/c/windows" || true; done
+          for e in teLeap antechamber parmchk2 sqm cpptraj; do echo "== $e"; ldd "ambertools-win/bin/$e.exe" | grep -v -i "/c/windows" || true; done
 
       - name: Bundle runtime DLLs
         run: bash smoke/bundle_dlls.sh "$GITHUB_WORKSPACE/ambertools-win"
@@ -115,11 +115,22 @@ jobs:
       - name: Package
         run: |
           cp ambertools26_src/AmberTools/LICENSE ambertools-win/LICENSE-AmberTools.txt
+          # cpptraj's own licence, and the copyright of the netCDF that AmberTools
+          # builds internally (FORCE_INTERNAL_LIBS) and cpptraj links. The MinGW
+          # DLLs' licences (fftw and the like) come from smoke/bundle_dlls.sh.
+          mkdir -p ambertools-win/licenses/cpptraj ambertools-win/licenses/netcdf
+          find ambertools26_src/AmberTools/src/cpptraj -maxdepth 1 -iname 'LICENSE*' \
+            -exec cp {} ambertools-win/licenses/cpptraj/ \;
+          find ambertools26_src/AmberTools/src -maxdepth 3 -path '*netcdf*' \
+            \( -iname 'COPYRIGHT*' -o -iname 'LICENSE*' \) -exec cp --parents {} ambertools-win/licenses/netcdf/ \;
+          ls -R ambertools-win/licenses/cpptraj ambertools-win/licenses/netcdf
+          test -n "$(ls ambertools-win/licenses/cpptraj)"
           cp README.md ambertools-win/README-build.md
           # MSYS2's zip, not PowerShell's Compress-Archive: the latter stored the
           # paths with backslashes, which only Windows tools read as folders.
           cd "$GITHUB_WORKSPACE" && zip -qr ambertools26-win64-subset.zip ambertools-win
           unzip -l ambertools26-win64-subset.zip | grep -q "ambertools-win/bin/teLeap.exe"
+          unzip -l ambertools26-win64-subset.zip | grep -q "ambertools-win/bin/cpptraj.exe"
           ls -la ambertools26-win64-subset.zip
 
       - uses: actions/upload-artifact@v5

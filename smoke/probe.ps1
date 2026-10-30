@@ -10,7 +10,8 @@ $progs = @(
   @{ exe = Join-Path $bin 'teLeap.exe'; args = '-f q.in' },
   @{ exe = Join-Path $bin 'sqm.exe'; args = '-h' },
   @{ exe = Join-Path $bin 'wrapped_progs\antechamber.exe'; args = '-h' },
-  @{ exe = Join-Path $bin 'wrapped_progs\parmchk2.exe'; args = '-h' }
+  @{ exe = Join-Path $bin 'wrapped_progs\parmchk2.exe'; args = '-h' },
+  @{ exe = Join-Path $bin 'cpptraj.exe'; args = '--version' }
 )
 foreach ($p in $progs) {
   $r = Start-Process -FilePath $p.exe -ArgumentList $p.args -NoNewWindow -Wait -PassThru `

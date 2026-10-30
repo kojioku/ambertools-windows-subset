@@ -15,8 +15,9 @@ minimal set of tools and tests it.
 - Source: `ambertools26_rc7.tar.bz2` from ambermd.org, the same tarball and SHA-256 as the
   conda-forge feedstock (see `.github/workflows/build.yml`)
 - Tools: everything in `disable_tools.txt` is switched off; what remains is antechamber,
-  sqm, leap and the libraries they need (sander, pbsa, sff, rism, quick, cew, libdlfind,
-  emil, sebomd, cifparse, lib, etc)
+  sqm, leap, cpptraj and the libraries they need (sander, pbsa, sff, rism, quick, cew,
+  libdlfind, emil, sebomd, cifparse, lib, etc). cpptraj's licence and the copyright of the
+  internal netCDF it links are in `licenses/cpptraj` and `licenses/netcdf` of the archive
 - NetCDF: the copy bundled with AmberTools (netcdf-c 4.6.1, netcdf-fortran 4.4.4), not
   MSYS2's. MSYS2's netcdf pulls in HDF5, curl and the AWS SDK (about 40 DLLs), and
   teLeap then failed to start with a missing entry point (0xC0000139)

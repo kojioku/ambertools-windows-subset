@@ -32,6 +32,26 @@ grep -E "Total unperturbed charge|Exiting" peptide.leap.log || true
 test -s peptide.prmtop
 test -s peptide_solv.prmtop
 
+# cpptraj: what moldeck asks of it, in small -- strip the solvent and write a
+# PDB (mmgbsa's complex slice), and a distance between two atoms (grest pmf).
+if [[ -x "$AMBERHOME/bin/cpptraj.exe" || -x "$AMBERHOME/bin/cpptraj" ]]; then
+  CPPTRAJ="$AMBERHOME/bin/cpptraj"
+else
+  CPPTRAJ=cpptraj
+fi
+"$CPPTRAJ" --version
+printf '%s\n' \
+  'parm peptide_solv.prmtop' \
+  'trajin peptide_solv.inpcrd' \
+  'strip :WAT,Na+,Cl-' \
+  'distance d1 :2@CA :5@CA out dist.dat' \
+  'trajout peptide_dry.pdb pdb' \
+  'go' 'quit' > dry.cpptraj
+"$CPPTRAJ" -i dry.cpptraj > cpptraj.log 2>&1
+test -s peptide_dry.pdb
+test -s dist.dat
+echo "cpptraj: $(grep -c '^ATOM' peptide_dry.pdb) atoms after strip; $(tail -1 dist.dat)"
+
 # On Windows antechamber and parmchk2 are .bat wrappers around
 # bin/wrapped_progs/*.exe, which bash cannot run; call the programs directly.
 if [[ -x "$AMBERHOME/bin/wrapped_progs/antechamber.exe" ]]; then
