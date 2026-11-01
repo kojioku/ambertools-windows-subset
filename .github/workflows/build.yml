@@ -71,7 +71,20 @@ jobs:
       - name: Build
         run: |
           cd build
-          make -j4 install 2>&1 | tail -200
+          # Keep the whole log: with -j4 the failing target's message is often
+          # more than 200 lines before the end. On failure, re-run serially so
+          # the first error is the last thing printed, and list error lines.
+          set +e
+          make -j4 install > build.log 2>&1
+          rc=$?
+          set -e
+          tail -100 build.log
+          if [ $rc -ne 0 ]; then
+            echo "::group::error lines (-j4)"
+            grep -nE "error:|Error [0-9]+|undefined reference|No rule to make" build.log | head -80 || true
+            echo "::endgroup::"
+            make -j1 install > build_serial.log 2>&1 || { tail -120 build_serial.log; exit 1; }
+          fi
 
       - name: Inspect install
         run: |
@@ -108,6 +121,8 @@ jobs:
           name: build-logs
           path: |
             build/configure.log
+            build/build.log
+            build/build_serial.log
             build/CMakeFiles/CMakeError.log
             build/CMakeFiles/CMakeOutput.log
           if-no-files-found: ignore
