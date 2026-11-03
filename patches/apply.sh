@@ -39,4 +39,23 @@ if ! grep -q HELPME_PAGESIZE "$H"; then
   test "$(grep -c HELPME_PAGESIZE "$H")" -eq 3
 fi
 
+# cpptraj's DTR (Desmond) trajectory reader is switched off only for MSVC; its
+# _WIN32 branch lacks the headers for open/lseek/htonl, so MinGW would stop
+# there. Treat MinGW like MSVC (the reader is not needed for this subset).
+CM=$SRC/cpptraj/src/CMakeLists.txt
+if ! grep -q 'NOT MSVC AND NOT MINGW' "$CM"; then
+  test "$(grep -c '^if(NOT MSVC)$' "$CM")" -eq 1
+  sed -i 's/^if(NOT MSVC)$/if(NOT MSVC AND NOT MINGW)/' "$CM"
+  grep -n -A1 'NOT MSVC AND NOT MINGW' "$CM"
+fi
+
+# cpptraj's LEaP interface pipes tleap through popen, which cpptraj already
+# turns off for MSVC ("cannot be used on windows"); do the same for MinGW.
+LI=$SRC/cpptraj/src/LeapInterface.cpp
+if ! grep -q '__MINGW32__' "$LI"; then
+  test "$(grep -c '^# ifdef _MSC_VER$' "$LI")" -eq 2
+  sed -i 's/^# ifdef _MSC_VER$/# if defined(_MSC_VER) || defined(__MINGW32__)/' "$LI"
+  test "$(grep -c '__MINGW32__' "$LI")" -eq 2
+fi
+
 echo "patches applied"
