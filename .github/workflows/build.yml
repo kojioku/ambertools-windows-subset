@@ -134,8 +134,30 @@ jobs:
           # builds internally (FORCE_INTERNAL_LIBS) and cpptraj links. The MinGW
           # DLLs' licences (fftw and the like) come from smoke/bundle_dlls.sh.
           mkdir -p ambertools-win/licenses/cpptraj ambertools-win/licenses/netcdf
-          find ambertools26_src/AmberTools/src/cpptraj -maxdepth 1 -iname 'LICENSE*' \
+          find ambertools26_src/AmberTools/src/cpptraj -maxdepth 2 \( -iname 'LICENSE*' -o -iname 'COPYING*' \) \
             -exec cp {} ambertools-win/licenses/cpptraj/ \;
+          # The GPL-3.0 text, for cpptraj and the GPL parts of AmberTools: from the tarball if it
+          # carries one, else GCC's COPYING3 (the same licence text, from the MSYS2 prefix).
+          for g in ambertools26_src/GNU_GPL_v3 ambertools26_src/AmberTools/GNU_GPL_v3 ambertools26_src/COPYING; do
+            [ -f "$g" ] && [ ! -f ambertools-win/GNU_GPL_v3 ] && cp "$g" ambertools-win/GNU_GPL_v3 && echo "GPL text from $g"
+          done
+          if [ ! -f ambertools-win/GNU_GPL_v3 ]; then
+            c3=$(find /ucrt64/share/licenses -name COPYING3 | head -1)
+            test -n "$c3" && cp "$c3" ambertools-win/GNU_GPL_v3 && echo "GPL text from $c3"
+          fi
+          grep -q "GNU GENERAL PUBLIC LICENSE" ambertools-win/GNU_GPL_v3
+          grep -q "Version 3" ambertools-win/GNU_GPL_v3
+          # The AmberTools tree does not carry cpptraj's own LICENSE file (run 41568190157):
+          # state its licence and point at the GPL text above.
+          if [ -z "$(ls ambertools-win/licenses/cpptraj)" ]; then
+            printf '%s\n' \
+              "cpptraj (bin/cpptraj.exe) is free software under the GNU General Public" \
+              "License, version 3 or (at your option) any later version, as stated by its" \
+              "authors in https://github.com/Amber-MD/cpptraj/blob/master/LICENSE and in" \
+              "LICENSE-AmberTools.txt. The licence text is GNU_GPL_v3 at the top of this zip." \
+              "Source: the AmberTools tarball named in README-build.md, AmberTools/src/cpptraj." \
+              > ambertools-win/licenses/cpptraj/LICENSE-cpptraj.txt
+          fi
           find ambertools26_src/AmberTools/src -maxdepth 3 -path '*netcdf*' \
             \( -iname 'COPYRIGHT*' -o -iname 'LICENSE*' \) -exec cp --parents {} ambertools-win/licenses/netcdf/ \;
           ls -R ambertools-win/licenses/cpptraj ambertools-win/licenses/netcdf

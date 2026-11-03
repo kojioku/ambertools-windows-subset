@@ -15,6 +15,39 @@ for pass in 1 2 3 4 5; do
   done
   [[ $new = 0 ]] && break
 done
+# ldd only lists what it could load, so a DLL AmberTools itself built into lib/
+# (not bin/) never shows up as missing there, and cpptraj.exe then fails to start
+# on a clean machine (0xC0000135, run 41568190157). Walk the PE import tables with
+# objdump instead, copy what bin/ lacks from lib/ or the MSYS2 prefix, and stop if
+# anything outside Windows itself is still missing.
+L="$(dirname "$B")/lib"
+sysdir=/c/Windows/System32
+for pass in 1 2 3 4 5; do
+  new=0
+  for f in "$B"/*.exe "$B"/*.dll "$B"/wrapped_progs/*.exe; do
+    while read -r name; do
+      lower=$(echo "$name" | tr 'A-Z' 'a-z')
+      [[ $lower == api-ms-win-* || $lower == ext-ms-* ]] && continue
+      ls "$B" | tr 'A-Z' 'a-z' | grep -qxF "$lower" && continue
+      ls "$sysdir" 2>/dev/null | tr 'A-Z' 'a-z' | grep -qxF "$lower" && continue
+      for src in "$L/$name" /ucrt64/bin/"$name"; do
+        if [[ -e "$src" ]]; then cp "$src" "$B/"; echo "bundled $name (from $(dirname "$src"), by import table)"; new=1; break; fi
+      done
+    done < <(objdump -p "$f" 2>/dev/null | sed -n 's/^\s*DLL Name: //p')
+  done
+  [[ $new = 0 ]] && break
+done
+missing=0
+for f in "$B"/*.exe "$B"/*.dll "$B"/wrapped_progs/*.exe; do
+  while read -r name; do
+    lower=$(echo "$name" | tr 'A-Z' 'a-z')
+    [[ $lower == api-ms-win-* || $lower == ext-ms-* ]] && continue
+    ls "$B" | tr 'A-Z' 'a-z' | grep -qxF "$lower" && continue
+    ls "$sysdir" 2>/dev/null | tr 'A-Z' 'a-z' | grep -qxF "$lower" && continue
+    echo "MISSING: $(basename "$f") imports $name, found neither in bin/ nor in Windows"; missing=1
+  done < <(objdump -p "$f" 2>/dev/null | sed -n 's/^\s*DLL Name: //p')
+done
+[[ $missing = 0 ]] || exit 1
 ls "$B"/*.dll | wc -l | xargs echo "DLLs in bin:"
 
 # The licences of every MinGW DLL in bin/, from the MSYS2 package that owns

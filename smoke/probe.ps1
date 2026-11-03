@@ -13,8 +13,12 @@ $progs = @(
   @{ exe = Join-Path $bin 'wrapped_progs\parmchk2.exe'; args = '-h' },
   @{ exe = Join-Path $bin 'cpptraj.exe'; args = '--version' }
 )
+$bad = @()
 foreach ($p in $progs) {
   $r = Start-Process -FilePath $p.exe -ArgumentList $p.args -NoNewWindow -Wait -PassThru `
          -RedirectStandardOutput probe.out -RedirectStandardError probe.err
   '{0}: exit 0x{1:X8}' -f (Split-Path $p.exe -Leaf), $r.ExitCode
+  # a program's own non-zero exit (parmchk2 -h gives 1) is fine; a loader failure is not
+  if ($r.ExitCode -eq -1073741515 -or $r.ExitCode -eq -1073741511) { $bad += (Split-Path $p.exe -Leaf) }
 }
+if ($bad.Count) { Write-Error ("cannot start without MSYS2 (missing DLL or entry point): " + ($bad -join ', ')); exit 1 }
