@@ -26,4 +26,17 @@ sed -i -E 's/(FOPEN(NO)?COMPLAIN\( *[a-zA-Z>.-]+, *)"(r|w)(\+?)"/\1"\3\4b"/' "$D
 n=$(grep -cE 'FOPEN(NO)?COMPLAIN\(.*"(r|w)\+?b"' "$DB")
 echo "database.c: $n fopen calls switched to binary mode"
 test "$n" -eq 9
+# cpptraj's bundled helPME sizes its cache blocks with sysconf(_SC_PAGESIZE),
+# which MinGW's unistd.h does not provide (run 41558870520: "'_SC_PAGESIZE' was
+# not declared"). Use the x86-64 Windows page size there; it only tunes blocking.
+H=$SRC/cpptraj/src/helpme_standalone.h
+if ! grep -q HELPME_PAGESIZE "$H"; then
+  n=$(grep -c 'sysconf(_SC_PAGESIZE)' "$H")
+  test "$n" -eq 1
+  sed -i 's/sysconf(_SC_PAGESIZE)/HELPME_PAGESIZE/' "$H"
+  sed -i '0,/#include <unistd.h>/s//#include <unistd.h>\n#if defined(_WIN32) \&\& !defined(_SC_PAGESIZE)\n#define HELPME_PAGESIZE 4096L  \/\* x86-64 Windows page size; MinGW has no sysconf \*\/\n#else\n#define HELPME_PAGESIZE sysconf(_SC_PAGESIZE)\n#endif/' "$H"
+  grep -n -A5 '#include <unistd.h>' "$H" | head -7
+  test "$(grep -c HELPME_PAGESIZE "$H")" -eq 3
+fi
+
 echo "patches applied"
